@@ -1,0 +1,5 @@
+[turnstile]
+# This is the demo key. In prod, we recommend you store your secret key(s) safely.
+# get your key here https://www.cloudflare.com/products/turnstile/
+SITE_KEY = "1x00000000000000000000AA"
+SECRET_KEY = "1x0000000000000000000000000000000AA"
