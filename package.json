@@ -6,6 +6,6 @@
 		"dev": "wrangler dev src/index.mjs --local"
 	},
 	"devDependencies": {
-		"wrangler": "^2.0.0"
+		"wrangler": "^3.1.1"
 	}
 }
