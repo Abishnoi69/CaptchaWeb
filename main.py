@@ -18,7 +18,7 @@ else:
 		config = tomllib.load(f)
 
 @app.get("/")
-async def verify(verify_id: str = None):
+async def verify(chat_id: str = None):
 	css = '''
 			body {
 				--bg-color: var(--tg-theme-bg-color, #fff);
@@ -34,10 +34,10 @@ async def verify(verify_id: str = None):
 	'''
 
 	redirect = '''
-  function turnstile_callback () {
+  function onSubmit(token) {
 	document.getElementById("form").submit();
   }
-    '''
+	'''
 
 	text = f'''
 <!DOCTYPE html>
@@ -47,31 +47,31 @@ async def verify(verify_id: str = None):
 			{css}
 		</style>
 		<script src="https://telegram.org/js/telegram-web-app.js?1"></script>
-		<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onloadTurnstileCallback" defer></script>
+		<script src="https://www.google.com/recaptcha/api.js"></script>
 		<script>{redirect}</script>
 	</head>
 	<body>
-		<form action="/validate_turnstile" method="post" id="form">
+		<form action="/validate_captcha" method="post" id="form">
 			<img src="https://images.emojiterra.com/google/noto-emoji/unicode-15/color/svg/1f916.svg" height="20px" width="20px" alt="robot" /><br />
 			<h1>Are you a human?</h1><br />
-			<i>Complete CAPTCHA below to join the group chat!</i>
-			<input type="hidden" name="verify_id" value="{verify_id}" />
-			<div class="cf-turnstile" data-sitekey="{config['turnstile']['SITE_KEY']}" data-callback="turnstile_callback"></div>
+			<i>Click button below to join the group chat!</i>
+			<input type="hidden" name="chat_id" value="{chat_id}" />
+			<button class="g-recaptcha" data-sitekey="{config['recaptchav3']['SITE_KEY']}" data-callback='onSubmit' data-action='submit'>Submit</button>
 		</form>
 	</body>
 </html>
 	'''
 	return HTMLResponse(text)
 
-@app.post("/validate_turnstile")
-async def con(r: Request):
-	token = (await r.form())['cf-turnstile-response']
-	verify_id = (await r.form())['verify_id']
+@app.post("/validate_captcha")
+async def validate_captcha(r: Request):
+	token = (await r.form())['g-recaptcha-response']
+	chat_id = (await r.form())['chat_id']
 	ip = r.client.host
-	url = 'https://challenges.cloudflare.com/turnstile/v0/siteverify'
-	body = {'secret': config['turnstile']['SECRET_KEY'], 'response': token, 'remoteip': ip}
-	result = requests.post(url, json=body).json()
-	result["verify_id"] = verify_id
+	url = 'https://www.google.com/recaptcha/api/siteverify'
+	body = {'response': token, 'secret': config['recaptchav3']['SECRET_KEY'], 'remote_ip': ip}
+	result = requests.post(url, data=body).json()
+	result["chat_id"] = chat_id
 	text = '''
 <!DOCTYPE html>
 <html>
